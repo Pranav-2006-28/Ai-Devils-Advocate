@@ -60,11 +60,16 @@ graph TD
 ---
 
 ## 🎓 How It Was Trained (The Data Pipeline)
-To create these distinct personas without destroying the model's base legal knowledge, we used a highly specialized pipeline:
+To create these distinct personas, we built a highly specialized pipeline. While the production web app uses **Ollama (phi4)** for the highest fidelity text generation, this repository also includes a complete **LoRA Fine-Tuning** pipeline to demonstrate how to train custom models.
+
 1. **Dataset Acquisition:** We utilized the `cuad-main` dataset (Contract Understanding Atticus Dataset), which contains thousands of real-world legal clauses annotated by legal experts.
 2. **Synthetic Data Generation:** We ran the raw CUAD clauses through a prompt-generation pipeline to create three distinct outputs for each clause (Lawyer, Optimist, Pessimist).
-3. **LoRA Fine-Tuning:** Instead of training three separate 1.5B parameter models (which would destroy VRAM), we froze the base model weights and trained three separate **LoRA adapters**. 
-4. **Dynamic Hot-Swapping:** At runtime, the FastAPI backend uses `set_adapter()` to instantly swap the active persona weights on the base model in milliseconds.
+3. **LoRA Fine-Tuning:** We froze the `Qwen 1.5B` base model weights and trained three separate **LoRA adapters** (found in `backend/training/adapters`). 
+4. **Dynamic Hot-Swapping:** We built a custom inference script (`backend/app/personas/inference_lora.py`) that uses `set_adapter()` to instantly swap the active persona weights on the base model in milliseconds.
+
+> [!NOTE]
+> **Architectural Design Choice:** Why use Ollama for the web app if we trained LoRA adapters? 
+> As an engineering decision, a 14B parameter model like `phi4` produces significantly better, more articulate JSON responses for the UI than a 1.5B model. We chose to deploy the web app using Ollama for maximum quality, while retaining the custom LoRA adapters in this repository to demonstrate End-to-End ML training, PEFT, and model hot-swapping capabilities.
 
 ---
 
