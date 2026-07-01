@@ -1,0 +1,22 @@
+# Node
+node_modules/
+dist/
+.env
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+venv/
+.env
+
+# OS
+.DS_Store
+Thumbs.db
+
+# AI Models and Databases
+backend/app/rag/qdrant_db/
+backend/training/adapters/
+cuad-main/
+*.safetensors
+*.bin

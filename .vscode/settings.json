@@ -1,0 +1,12 @@
+{
+    "python.defaultInterpreterPath": "${workspaceFolder}/venv/Scripts/python.exe",
+    "python.pythonPath": "${workspaceFolder}/venv/Scripts/python.exe",
+    "[python]": {
+        "editor.defaultFormatter": "ms-python.autopep8"
+    },
+    "python.analysis.extraPaths": [
+        "${workspaceFolder}/cuad-main",
+        "${workspaceFolder}/backend/app"
+    ],
+    "python.analysis.typeCheckingMode": "off"
+}
