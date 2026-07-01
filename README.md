@@ -4,80 +4,105 @@
 
 Built to showcase an end-to-end Local LLM workflow, the application features an entirely local RAG (Retrieval-Augmented Generation) pipeline backed by a vector database, and uses dynamic LoRA (Low-Rank Adaptation) adapters hot-swapped at runtime to change the AI's personality and risk-analysis style.
 
-![Screenshot Placeholder](https://via.placeholder.com/1000x500.png?text=AI+Devil's+Advocate+UI)
+---
+
+## 🎯 The Problem & The Solution
+Legal contracts are notoriously difficult to read, and missing a single clause can result in catastrophic financial or legal exposure. Standard AI models provide generic summaries that often miss the nuance of legal risk.
+
+**The Solution:** We fine-tuned a base AI model (`Qwen/Qwen2.5-1.5B-Instruct`) into three highly specialized experts using the **CUAD (Contract Understanding Atticus Dataset)**. By hot-swapping these lightweight adapters into memory, the application processes a single contract through three different "brains" simultaneously:
+- 🏛️ **The Lawyer:** Identifies structural risks, loopholes, and strict legal liabilities.
+- 🤝 **The Optimist:** Reframes clauses to highlight best-case outcomes and mutual benefits.
+- 🚨 **The Pessimist:** Warns of worst-case scenarios, catastrophic failures, and unbounded exposure.
 
 ---
 
-## 🚀 Features
+## 🛠️ Tech Stack & AI Models
 
-- **Multi-Persona Analysis:** Submit a legal clause and get three unique perspectives simultaneously.
-  - 🏛️ **The Lawyer:** Identifies structural risks, loopholes, and strict legal liabilities.
-  - 🤝 **The Optimist:** Reframes clauses to highlight best-case outcomes and mutual benefits.
-  - 🚨 **The Pessimist:** Warns of worst-case scenarios, catastrophic failures, and unbounded exposure.
-- **Local RAG Pipeline:** Contextualizes analysis using real-world legal precedents and case law stored in a local Qdrant vector database.
-- **Dynamic LoRA Hot-Swapping:** Uses `peft` and HuggingFace `transformers` to dynamically swap LoRA adapters on a base 1.5B parameter model (Qwen 2.5) during inference, achieving distinct personas without loading three massive models into VRAM.
-- **100% Local Inference:** No OpenAI API keys. Total data privacy. Runs entirely on consumer GPU hardware.
-
----
-
-## 🛠️ Tech Stack
-
-### Frontend
-- **React.js & Vite:** Lightning-fast, component-based UI.
-- **Vanilla CSS:** Custom, modern, glassmorphic UI design with responsive grids and CSS animations.
+### Artificial Intelligence & Machine Learning
+- **Base Model:** `Qwen/Qwen2.5-1.5B-Instruct` (A highly capable, lightweight 1.5B parameter model).
+- **Fine-Tuning Architecture:** `peft` (Parameter-Efficient Fine-Tuning) and `trl` using **LoRA**.
+- **Training Dataset:** The **CUAD (Contract Understanding Atticus Dataset)**, enhanced with synthetic persona-driven instruction pairs.
+- **RAG Pipeline Embeddings:** `all-MiniLM-L6-v2` via `Sentence-Transformers`.
+- **Hardware:** Runs 100% locally on consumer GPUs.
 
 ### Backend
 - **FastAPI:** High-performance async Python backend.
-- **Qdrant:** Local Vector Database for the Retrieval-Augmented Generation (RAG) pipeline.
-- **Sentence-Transformers:** Local embedding generation (`all-MiniLM-L6-v2`).
+- **Qdrant:** Local Vector Database for the Retrieval-Augmented Generation (RAG) pipeline to pull in relevant legal precedents.
+- **PyMuPDF (fitz):** For robust local PDF text extraction.
 
-### AI / Machine Learning
-- **Base Model:** `Qwen/Qwen2.5-1.5B-Instruct`
-- **Fine-Tuning:** Instruction Fine-Tuning (IFT) using **QLoRA** (`bitsandbytes`, `peft`, `trl`).
-- **Data Pipeline:** Synthetic dataset generation based on the CUAD (Contract Understanding Atticus Dataset) taxonomy.
+### Frontend
+- **React.js & Vite:** Lightning-fast, component-based UI.
+- **Vanilla CSS:** Custom, modern, glassmorphic UI design with responsive grids and CSS animations (No component libraries used).
 
 ---
 
-## ⚙️ Local Setup & Installation
+## 🧠 System Architecture
 
-This project requires a CUDA-compatible NVIDIA GPU for optimal performance, though it can fall back to CPU for inference.
-
-### 1. Clone the Repository
-```bash
-git clone https://github.com/yourusername/ai-devils-advocate.git
-cd ai-devils-advocate
+```mermaid
+graph TD
+    A[User Uploads PDF Contract] --> B[PyMuPDF Extracts Text]
+    B --> C[Clause Detection Engine]
+    C -->|Found Clauses| D[Qdrant Vector DB]
+    D -->|Retrieves Precedents| E[Base Model: Qwen 1.5B]
+    
+    E -. Loads LoRA .-> F[The Lawyer Adapter]
+    E -. Loads LoRA .-> G[The Optimist Adapter]
+    E -. Loads LoRA .-> H[The Pessimist Adapter]
+    
+    F --> I[Combined JSON Response]
+    G --> I
+    H --> I
+    
+    I --> J[React Glassmorphism UI]
 ```
 
-### 2. Setup the Python Backend
+---
+
+## 🎓 How It Was Trained (The Data Pipeline)
+To create these distinct personas without destroying the model's base legal knowledge, we used a highly specialized pipeline:
+1. **Dataset Acquisition:** We utilized the `cuad-main` dataset (Contract Understanding Atticus Dataset), which contains thousands of real-world legal clauses annotated by legal experts.
+2. **Synthetic Data Generation:** We ran the raw CUAD clauses through a prompt-generation pipeline to create three distinct outputs for each clause (Lawyer, Optimist, Pessimist).
+3. **LoRA Fine-Tuning:** Instead of training three separate 1.5B parameter models (which would destroy VRAM), we froze the base model weights and trained three separate **LoRA adapters**. 
+4. **Dynamic Hot-Swapping:** At runtime, the FastAPI backend uses `set_adapter()` to instantly swap the active persona weights on the base model in milliseconds.
+
+---
+
+## 🚀 Setup & Installation
+
+Follow these steps exactly to run the project locally on your machine.
+
+### 1. Prerequisites
+- Python 3.10 or higher
+- Node.js 18 or higher
+- A GPU with at least 8GB VRAM (Highly Recommended)
+
+### 2. Clone the Repository
+```bash
+git clone https://github.com/Pranav-2006-28/Ai-Devils-Advocate.git
+cd Ai-Devils-Advocate
+```
+
+### 3. Backend Setup (FastAPI & AI Models)
+Open a terminal and navigate to the `backend` folder:
 ```bash
 cd backend
 python -m venv venv
-# Windows
-venv\Scripts\activate
-# Linux/Mac
+
+# Activate Virtual Environment (Windows)
+.\venv\Scripts\activate
+# Activate Virtual Environment (Mac/Linux)
 source venv/bin/activate
 
+# Install dependencies
 pip install -r requirements.txt
+pip install PyMuPDF
 ```
 
-### 3. Setup the React Frontend
+### 4. Frontend Setup (React & Vite)
+Open a **second, separate terminal** and navigate to the `frontend` folder:
 ```bash
-cd ../frontend
+cd frontend
 npm install
-```
-
-### 4. Build the RAG Knowledge Base
-```bash
-# From the backend directory
-python app/rag/build_index.py
-```
-
-### 5. Train the LoRA Personas (Optional)
-If you want to train the adapters yourself from the provided dataset, you will need the CUAD data.
-*Note: The `cuad-main` folder (containing the Contract Understanding Atticus Dataset) is placed alongside or inside the project directory and is referenced by the training script to generate our specialized datasets.*
-```bash
-# From the backend directory
-python training/train_personas.py
 ```
 
 ---
@@ -85,62 +110,28 @@ python training/train_personas.py
 ## 🏃‍♂️ Running the Application
 
 > [!WARNING]
-> **First Run / Server Startup:** The very first time you start the backend server, it will take **5-6 minutes to load**. This is completely normal! The server is loading the Qwen 1.5B parameter base model and the LoRA adapters into your GPU/CPU memory. Once loaded, it runs lightning fast.
+> **First Run / Server Startup:** The very first time you start the backend server, it will take **5-6 minutes to load**. This is completely normal! The server is downloading the Qwen 1.5B parameter base model (if not cached) and loading the LoRA adapters into your GPU/CPU memory. Once loaded, it runs lightning fast.
 
-You will need two terminals running simultaneously.
+You will need your two terminals running simultaneously.
 
-**Terminal 1: Start the Backend (FastAPI)**
+**Terminal 1: Start the Backend**
 ```bash
 cd backend
-venv\Scripts\activate
+.\venv\Scripts\activate
 python -m uvicorn app.main:app --reload --port 8001
 ```
 
-**Terminal 2: Start the Frontend (Vite)**
+**Terminal 2: Start the Frontend**
 ```bash
 cd frontend
 npm run dev
 ```
 
-Navigate to `http://localhost:5173` in your browser.
-
----
-
-## 🧠 Architecture Deep Dive
-
-### 1. The RAG Pipeline
-When a user submits a clause, it is first embedded using a local `SentenceTransformer` model. We perform a similarity search against a local **Qdrant** database pre-loaded with legal precedents. The retrieved case laws are injected into the LLM context window to ground the AI's analysis in reality.
-
-```mermaid
-graph TD
-    A[User Submits Clause] --> B[FastAPI Backend]
-    B --> C[SentenceTransformers Embedding]
-    C --> D[(Qdrant Vector DB)]
-    D -- Retrieves Precedents --> E[Prompt Construction]
-    E --> F[Qwen 1.5B Base Model]
-```
-
-### 2. LoRA (Low-Rank Adaptation)
-Instead of relying on prompt engineering alone, the model's behavior is fundamentally altered using specialized LoRA adapters. 
-1. We fine-tuned the base model on distinct datasets for each persona.
-2. At inference time, the backend loads the base model into VRAM once.
-3. For each persona request, the system actively uses `set_adapter("lawyer")`, `set_adapter("optimist")`, etc., to alter the model weights dynamically without memory overhead.
-
-```mermaid
-graph LR
-    A[Base Model Loaded in VRAM]
-    B(Lawyer Adapter)
-    C(Optimist Adapter)
-    D(Pessimist Adapter)
-    
-    A -. set_adapter .-> B
-    A -. set_adapter .-> C
-    A -. set_adapter .-> D
-```
+Finally, open your browser and go to `http://localhost:5173`. Drop a PDF contract into the upload zone and watch the AI analyze the risk!
 
 ---
 
 ## 📄 License
-This project is licensed under the MIT License - see the LICENSE file for details.
+This project is licensed under the MIT License.
 
 *Disclaimer: AI Devil's Advocate is an experimental tool and does not provide actual legal advice. Always consult with a qualified attorney.*
