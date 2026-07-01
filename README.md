@@ -19,11 +19,12 @@ Legal contracts are notoriously difficult to read, and missing a single clause c
 ## 🛠️ Tech Stack & AI Models
 
 ### Artificial Intelligence & Machine Learning
-- **Base Model:** `Qwen/Qwen2.5-1.5B-Instruct` (A highly capable, lightweight 1.5B parameter model).
-- **Fine-Tuning Architecture:** `peft` (Parameter-Efficient Fine-Tuning) and `trl` using **LoRA**.
-- **Training Dataset:** The **CUAD (Contract Understanding Atticus Dataset)**, enhanced with synthetic persona-driven instruction pairs.
+- **Clause Extraction Model:** `law-ai/InLegalBERT` (Fine-tuned on the CUAD dataset).
+- **Persona Generation:** Local **Ollama** instance running the `phi4` model.
 - **RAG Pipeline Embeddings:** `all-MiniLM-L6-v2` via `Sentence-Transformers`.
-- **Hardware:** Runs 100% locally on consumer GPUs.
+- **Hardware:** Runs 100% locally on consumer GPUs and CPUs.
+
+*(Note: The repository also includes experimental LoRA adapters trained on Qwen 2.5 1.5B in the `backend/training/adapters/` directory for those who want to run inference without Ollama).*
 
 ### Backend
 - **FastAPI:** High-performance async Python backend.
@@ -41,13 +42,13 @@ Legal contracts are notoriously difficult to read, and missing a single clause c
 ```mermaid
 graph TD
     A[User Uploads PDF Contract] --> B[PyMuPDF Extracts Text]
-    B --> C[Clause Detection Engine]
+    B --> C[Clause Detection Engine: InLegalBERT]
     C -->|Found Clauses| D[Qdrant Vector DB]
-    D -->|Retrieves Precedents| E[Base Model: Qwen 1.5B]
+    D -->|Retrieves Precedents| E[Ollama: phi4 Local LLM]
     
-    E -. Loads LoRA .-> F[The Lawyer Adapter]
-    E -. Loads LoRA .-> G[The Optimist Adapter]
-    E -. Loads LoRA .-> H[The Pessimist Adapter]
+    E -. System Prompt .-> F[The Lawyer Persona]
+    E -. System Prompt .-> G[The Optimist Persona]
+    E -. System Prompt .-> H[The Pessimist Persona]
     
     F --> I[Combined JSON Response]
     G --> I
@@ -74,7 +75,8 @@ Follow these steps exactly to run the project locally on your machine.
 ### 1. Prerequisites
 - Python 3.10 or higher
 - Node.js 18 or higher
-- A GPU with at least 8GB VRAM (Highly Recommended)
+- **Ollama**: You must have [Ollama](https://ollama.com/) installed and running locally.
+- **phi4 Model**: Run `ollama run phi4` in your terminal to download the required LLM.
 
 ### 2. Clone the Repository
 ```bash
@@ -110,7 +112,7 @@ npm install
 ## 🏃‍♂️ Running the Application
 
 > [!WARNING]
-> **First Run / Server Startup:** The very first time you start the backend server, it will take **5-6 minutes to load**. This is completely normal! The server is downloading the Qwen 1.5B parameter base model (if not cached) and loading the LoRA adapters into your GPU/CPU memory. Once loaded, it runs lightning fast.
+> **First Run / Server Startup:** The very first time you start the backend server, it will take **a few minutes to load**. The server will automatically download the `InLegalBERT` model and the sentence-transformer embeddings into your local cache if you don't already have them.
 
 You will need your two terminals running simultaneously.
 
